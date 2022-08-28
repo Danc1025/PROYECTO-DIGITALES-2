@@ -1,0 +1,20 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity Temporizador_60 is
+port (Clock,Resetn: in std_logic;
+		Temp: buffer std_logic_vector(5 downto 0);
+		Flag_Temp: out std_logic);
+end Temporizador_60;
+
+architecture Desarrollo of Temporizador_60 is
+begin
+	process(Clock)
+		begin
+		if Resetn='0' then Temp<="000000"; Flag_Temp<='0';
+		elsif (Clock'event and Clock='1') then Temp<=Temp+1; Flag_Temp<='0';
+			if (Temp="111011") then Temp<="000000"; Flag_Temp<='1'; end if;
+		end  if;
+	end process;
+end Desarrollo;

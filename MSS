@@ -1,0 +1,60 @@
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity MSS is
+	port(Clk,Resetn,Ingreso_Nivel,Fin_Llenado,Ingreso_Temperaturas,On_Alarma,Limite_RAM,Finalizar,Mostrar_Resultados: in std_logic;
+		  En_Nivel, En_Llenado, Ld_Llenado, Final_Llenado,En_Registros,Alarma,RorW,En_Cnt,Ld_Cnt: out std_logic);
+end MSS;
+
+architecture Controlador of MSS is
+type estado is (Ta,Tb,Tc,Td,Te,Tf,Tg,Th,Ti,Tj,Tk,Tl,Tm,Tn,Too,Tp,Tq,Tr);
+signal y: estado;
+begin
+	process(Clk, Resetn)
+	begin
+		if Resetn='0' then y<=Ta;
+		elsif (Clk' event and Clk='1') then
+			case y is
+				when Ta=> if Ingreso_Nivel='1' then y<=Tb; else y<=Ta; end if;
+				when Tb=> if Ingreso_Nivel='1' then y<=Tb; else y<=Tc; end if;
+				when Tc=> y<= Td;
+				when Td=> if Fin_Llenado='1' then y<=Tf; else y<=Te; end if;
+				when Te=> y<=Td;
+				when Tf=> if Ingreso_Temperaturas='1' then y<=Tg; else y<=Tf; end if;
+				when Tg=> if Ingreso_Temperaturas='1' then y<=Tg; else y<=Th; end if;
+				when Th=> y<=Ti;
+				when Ti=> if On_Alarma='1' then y<=Tj; else y<=Tn; end if;
+				when Tj=> y<=Tk;
+				when Tk=> if Limite_RAM='1' then y<=Tm; else y<=Tl; end if;
+				when Tl=> y<=Tn;
+				when Tm=> y<=Tn;
+				when Tn=> if Finalizar='1' then y<=Too; else y<=Ti; end if;
+				when Too=> if Mostrar_Resultados='1' then y<=Tp; else y<=Too; end if;
+				when Tp=> if Limite_RAM='1' then y<=Tr; else y<=Tq; end if;
+				when Tq=> y<=Tp;
+				when Tr=> y<=Ta;
+				end case;
+		end if;
+	end process;
+	
+	process(y)
+	begin
+		En_Nivel<='0'; En_Llenado<='0'; Ld_Llenado<='0'; Final_Llenado<='0';En_Registros<='0';Alarma<='0';RorW<='0';En_Cnt<='0';Ld_Cnt<='0';
+		case y is
+			when Tc=> En_Nivel<='1';
+			when Te=> En_Llenado<='1';
+			when Tf=> Final_Llenado<='1';
+			when Tg=> Final_Llenado<='1';
+			when Th=> En_Registros<='1';
+			when Tj=> Alarma<='1';
+			when Tk=> RorW<='1'; Alarma<='1';
+			when Tl=> En_cnt<='1';Alarma<='1';
+			when Tm=> En_Cnt<='1'; Ld_Cnt<='1'; Alarma<='1';
+			when Tn=> Alarma<='1';
+			when Too=> En_Cnt<='1'; Ld_Cnt<='1';
+			when Tq=> En_Cnt<='1';
+			when Tr=> En_Cnt<='1'; Ld_Cnt<='1';
+			when others=>
+		end case;
+	end process;
+end Controlador;
